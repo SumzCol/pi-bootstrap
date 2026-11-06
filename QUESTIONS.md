@@ -1,0 +1,53 @@
+# Decisiones y pendientes
+
+## Cerradas (2026-10-29)
+
+1. Destino: **macOS + Linux**, sin Windows.
+2. **Sin Homebrew y sin sudo**: tarballs pineados + sha256, npm con `--prefix ~/.local`.
+3. Auth **manual por persona**; el bootstrap instala la herramienta, lanza el login y espera
+   (`pi auth check --no-refresh --json`), con `--skip-auth` para CI.
+4. Setup semi-interactivo: only-shot por defecto, pregunta sólo el perfil (si falta `--profile`).
+5. Versiones **pineadas**; `upgrade` queda como procedimiento documentado (implementación pendiente).
+6. Audiencia: compañeros y devs externos.
+7. Proveedores: **claude** (vía `claude-bridge` y Claude Code), **openai**, **deepseek**. Nada más.
+8. Prueba en **Docker Linux** primero.
+9. `hybrid` son **dos** entradas: `hybrid-claude` y `hybrid-openai`.
+10. DeepSeek por **key propia** (provider nativo `deepseek`); `opencode-go` es mejora opcional.
+11. Fallback de Claude: el perfil exige `claude-bridge`; una API key de Anthropic queda para
+    después (no hay perfil que la use hoy).
+12. **No se pregunta `provider.plan`**: la matriz sólo usa `sonnet-5-5`/`opus-5-5`/`haiku-5-5`,
+    que dan 1M sin importar el plan. Queda documentado por si alguien usa `opus-4-6` a mano.
+13. Independencia de verificación: **se declara** (`cross-provider` / `same-family`) y `verify` avisa.
+14. Entra `full-deepseek` como perfil de onboarding barato.
+15. Distribución: repo público + `curl | sh` (pendiente publicar).
+16. UX del setup: **cuestionario en terminal** (funciona por SSH y es testeable).
+17. Merge policy: **backup + merge conservador**, nunca clobber silencioso.
+18. Telemetría: pendiente de decidir en la implementación (hoy no se toca).
+19. Alcance: **sólo el harness**; `init` se limita a `AGENTS.md`, `trust.json`, `codegraph init`, `odd/tasks/`.
+20. Tier `shell` **entra** sin wizard: shim al binario de `gentle-pi` + `home isolated` + `import-pi`
+    + `setup`. Se pierde el runtime Node propio (usamos el pin) y el `upgrade --channel`.
+21. Node: si el dev ya tiene `node` ≥ pin, se reutiliza. No se fuerza el runtime pineado.
+22. Stack de gentle-ai: **`--preset full-gentleman` con los 8 componentes declarados explícitamente**
+    (`claude-theme,context7,persona,engram,gga,opencode-gentle-logo,permissions,skills`), persona
+    `gentleman`, `--pi-background-subagents=on`, canal `stable`. Nada se deja al default.
+23. Skills: el componente `skills` no aplica a Pi; las skills de Pi vienen del pin de `gentle-pi`.
+24. `gga` **queda fuera** del set por defecto (gate de pre-commit que bloquea commits y necesita un
+    CLI de proveedor mapeado); es opt-in con `--component gga`. gentle-ai no desinstala componentes
+    quitados de la lista: sólo deja de instalarlos en máquinas limpias.
+
+## Pendientes
+
+- ~~Tier `shell`~~ → **resuelto**: el binario vive en `gentle-pi` y `gentle-shell setup` aprovisiona
+  el home sin navegador (verificado en macOS aislado y en Docker, idempotente).
+- ~~`upgrade` real~~ → **implementado**: plan (npm/nodejs/GitHub), `--apply` con backup y verificación,
+  `--rollback`, y guard de major (`--major` para permitirlo).
+- ~~Borrar configuración~~ → **`pi-bootstrap reset --config|--tools|--shell|--all`** con backup previo
+  y `--purge-auth` separado.
+- **`curl | sh`**: publicar el repo y el tag; hoy `bootstrap.sh` falla con instrucciones claras.
+- **Login sin TUI**: el mecanismo cambió (openai por `scripts/pi-login.mjs`, claude por
+  `claude auth login`). Falta un login real de punta a punta en una TTY: hoy está verificado que el
+  flujo headless arranca, imprime la URL, escucha y aborta limpio; no que complete el OAuth.
+- **macOS**: correr el mismo `tests/` en un HOME aislado o usuario nuevo (el pipeline no se ha
+  ejercitado en macOS todavía; sí en Linux).
+- **Telemetría**: decidir default para devs externos (pi, gentle-ai, engram).
+- **Docs para el dev**: `AUTH.md` con el paso humano exacto por proveedor y troubleshooting.
